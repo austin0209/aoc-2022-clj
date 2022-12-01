@@ -1,6 +1,6 @@
 (ns aoc-2022-clj.core-test
   (:require [clojure.test :refer :all]
-            [aoc-2022-clj.core :refer :all]))
+            [aoc-2022-clj.day01 :refer :all]))
 
 (deftest a-test
   (testing "FIXME, I fail."
