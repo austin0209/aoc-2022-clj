@@ -3,25 +3,25 @@
   (:require [clojure.set :as set]))
 
 (defn get-priority [type]
-  ;(Character/isUpperCase ^Character (char type)))
   (if (Character/isUpperCase ^Character (char type))
     (- (int type) (- (int \A) 27))
     (- (int type) (- (int \a) 1))))
 
-(defn get-common [sack]
-  (let [left-comp (subvec sack 0 (/ (count sack) 2)) right-comp (subvec sack (/ (count sack) 2) (count sack))]
-    (->> (set/intersection (set left-comp) (set right-comp))
-        (vec)
-        (first))))
+(defn get-common [group]
+  (->> (map set group)
+       (reduce set/intersection)
+       (vec)
+       (first)))
 
-(defn solve [sacks]
-  (->> (map get-common sacks)
+(defn solve [groups]
+  (->> (map get-common groups)
        (map get-priority)
        (reduce +)))
 
 (defn parse [input]
   (->> (str/split-lines input)
-       (map vec)))
+       (map vec)
+       (partition 3)))
 
 (->> (slurp "input/day03.txt")
      (parse)
