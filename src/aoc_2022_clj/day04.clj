@@ -9,14 +9,14 @@
         upper (+ 1 (get spec 1))]
     (set (range lower upper))))
 
-(defn range-contains? [range1 range2]
+(defn range-overlaps? [range1 range2]
   (let [r1 (expand-range range1) r2 (expand-range range2) intersect (set/intersection r1 r2)]
-    (or (= intersect r1) (= intersect r2))))
+    (boolean (seq intersect))))
 
 (defn parse [input]
   (->> (str/split-lines input)
        (map #(str/split % #","))
-       (map #(apply range-contains? %))
+       (map #(apply range-overlaps? %))
        (filter true?)
        (count)))
 
