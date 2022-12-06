@@ -11,7 +11,7 @@
           from-stack (get stacks (- from 1))
           to-stack (get stacks (- to 1))
           removed (take-last move from-stack)
-          new-to (apply conj to-stack (reverse removed))
+          new-to (apply conj to-stack removed)
           new-from (vec (take (- (count from-stack) move) from-stack))
           new-stacks (-> (assoc stacks (- from 1) new-from) (assoc (- to 1) new-to))]
       (solve new-stacks (drop 1 commands)))))
