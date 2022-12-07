@@ -1,4 +1,4 @@
-(ns aoc-2022-clj.day0)
+(ns aoc-2022-clj.day06)
 
 (defn solve [input]
   (->> (partition 14 1 input)
