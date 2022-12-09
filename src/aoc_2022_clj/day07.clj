@@ -39,7 +39,10 @@
 (def parsed-input (parse (slurp "input/day07.txt")))
 (def files (solve (rest parsed-input) "ROOT" {"ROOT" ()} '("ROOT")))
 
+(def unused-space (- 70000000 (get-size "ROOT" files)))
+
 (->> (map #(get-size (first %) files) files)
-     (filter #(<= % 100000))
-     (reduce +)
+     (sort)
+     (filter #(>= (+ % unused-space) 30000000))
+     (first)
      (print))
