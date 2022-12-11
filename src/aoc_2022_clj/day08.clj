@@ -1,8 +1,8 @@
 (ns aoc-2022-clj.day08
   (:require [clojure.string :as str]))
 
-(def map-w 100)
-(def map-h 100)
+(def map-w 99)
+(def map-h 99)
 
 (defn get-pos [state x y]
   (if (or (< x 0) (>= x map-w) (< y 0) (>= y map-h))
