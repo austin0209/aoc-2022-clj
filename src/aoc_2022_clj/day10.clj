@@ -2,25 +2,39 @@
   (:require [clojure.string :as str])
   (:require [clojure.pprint :refer (pprint)]))
 
-(defn simulate [{:keys [cycle x] :as state} command]
-  (let [next-state (case (first command)
-                     (add-begin noop) (assoc state :cycle (+ cycle 1))
-                     add (-> (assoc state :cycle (+ cycle 1))
-                             (assoc :x (+ x (int (second command))))))]
-    (if (contains? #{20 60 100 140 180 220} (:cycle next-state))
-      (do (pprint next-state) (assoc next-state :ans (cons (* (:cycle next-state) (:x state)) (:ans state))))
-      next-state)))
-
 (defn parse [input]
   (->> (str/replace input "addx" "add-begin\nadd")
        (str/split-lines)
        (map #(read-string (str "[" % "]")))))
 
+(defn simulate [{:keys [cycle x] :as state} command]
+  (case (first command)
+    (add-begin noop) (assoc state :cycle (+ cycle 1))
+    add (-> (assoc state :cycle (+ cycle 1))
+            (assoc :x (+ x (int (second command)))))))
+
+(defn capture-states [init-state commands]
+  (loop [state init-state
+         commands commands
+         all-states ()]
+    (if (empty? commands)
+      all-states
+      (let [next-state (simulate state (first commands))
+            updated-states (conj all-states next-state)]
+        (recur next-state (rest commands) updated-states)))))
+
 (def start-state {:cycle 0
-                  :x     1
-                  :ans   ()})
+                  :x     1})
 
-(def end-state (reduce simulate start-state (parse (slurp "input/day10.txt"))))
-(map-indexed (fn [idx item] [(+ 1 idx) item]) (parse (slurp "input/day10.txt")))
+(def commands (parse (slurp "input/day10.txt")))
 
-(pprint (reduce + (:ans end-state)))
+(def all-states (reverse (conj (vec (capture-states start-state commands)) start-state)))
+
+(def crt-draw (->> all-states
+                   (map (fn [{:keys [cycle x]}]
+                          (let [idx (mod cycle 40)]
+                            (cond
+                              (> (Math/abs ^int (- x idx)) 1) "."
+                              :else "#"))))
+                   (partition 40)))
+(doseq [x crt-draw] (println x))
