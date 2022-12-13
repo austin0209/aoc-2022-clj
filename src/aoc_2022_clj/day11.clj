@@ -1,5 +1,5 @@
 (ns aoc-2022-clj.day11
-  (:require [clojure.string :as str])
+  (:require [clojure.string :as str]))
 
 (defn do-monkey-op [{:keys [operation]} val]
   (if (= (second operation) 'old)
