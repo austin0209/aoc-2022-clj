@@ -1,20 +1,26 @@
 (ns aoc-2022-clj.day11
   (:require [clojure.string :as str])
-  (:require [clojure.pprint :refer (pprint)]))
 
 (defn do-monkey-op [{:keys [operation]} val]
-  (let [op (str/replace operation #"old" (str val "N"))]
-    (eval (read-string op))))
+  (if (= (second operation) 'old)
+    (* val val)
+    (case (first operation)
+      * (* (second operation) val)
+      + (+ (second operation) val))))
 
 (defn parse-monkey [input]
   (let [lines (str/split-lines input)]
     {:idx (read-string (second (str/split (get lines 0) #"[ :]")))
      :inventory (read-string (str "[" (second (str/split (get lines 1) #"items: ")) "]"))
-     :operation (str "(" (second (str/split (get lines 2) #"new = old ")) " old)")
+     :operation (read-string (str "[" (second (str/split (get lines 2) #"new = old ")) "]"))
      :test      (read-string (last (str/split (get lines 3) #" ")))
      :if-true   (read-string (last (str/split (get lines 4) #" ")))
      :if-false  (read-string (last (str/split (get lines 5) #" ")))
      :iterations 0}))
+
+(defn prime-products [state]
+  (->> (map #(:test %) state)
+       (reduce *)))
 
 (defn parse [input]
   (->> (str/split input #"\n\n")
@@ -24,11 +30,11 @@
 (defn throw-items [curr-monkey init-state]
   (let [init-state (assoc-in init-state [(:idx curr-monkey) :iterations]
                              (+ (:iterations curr-monkey) (count (:inventory curr-monkey))))
-        vals (->> (:inventory curr-monkey)
-                  (map #(do-monkey-op curr-monkey %))
-                  (map #(int (Math/floor (float (/ % 3)))))
-                  (map #(vector (= (mod % (:test curr-monkey)) 0) %)))]
-    (loop [vals vals
+        init-vals (->> (:inventory curr-monkey)
+                       (map #(do-monkey-op curr-monkey %))
+                       (map #(mod % (prime-products init-state)))
+                       (map #(vector (= (mod % (:test curr-monkey)) 0) %)))]
+    (loop [vals init-vals
            state init-state]
     (if (empty? vals)
       state
@@ -51,7 +57,7 @@
       (recur (throw-items (get state idx) state) (+ idx 1)))))
 
 (defn solve [init-state]
-  (loop [c 20
+  (loop [c 10000
          state init-state]
     (if (= c 0)
       state
@@ -59,10 +65,8 @@
 
 (def start-state (parse (slurp "input/day11.txt")))
 (def end-state (solve start-state))
-;(pprint end-state)
 
-(pprint (->> (map #(:iterations %) end-state)
+(->> (map #(:iterations %) end-state)
      (sort)
      (take-last 2)
-     (reduce *)))
-
+     (reduce *))
