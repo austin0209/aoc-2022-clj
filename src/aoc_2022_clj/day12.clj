@@ -25,6 +25,15 @@
                         state)]
         (recur (rest positions) new-state)))))
 
+(defn get-zero-elevations [state]
+  (loop [positions (for [y (range (:h state)) x (range (:w state))] [x y])
+         result []]
+    (if (empty? positions)
+      result
+      (if (= 0 (get-pos-vec state (first positions)))
+        (recur (rest positions) (conj result (first positions)))
+        (recur (rest positions) result)))))
+
 (defn parse [input]
   (let [lines (str/split-lines input)
         init-state {:w     (count (first lines))
@@ -43,31 +52,39 @@
     (->> (vector up down left right)
          (filter #(some? (get-pos state (first %) (second %)))))))
 
-(defn solve [state]
-  (loop [frontier (conj PersistentQueue/EMPTY (:start state))
-         visited #{(:start state)}
+(defn solve [start state]
+  (loop [frontier (conj PersistentQueue/EMPTY start)
+         visited #{start}
          ;; a dict of position -> parent
-         history {(:start state) nil}]
+         history {start nil}]
     (let [curr (peek frontier)]
-      (if (= curr (:end state))
-        history
-        (let [neighbors (get-neighbor-positions state curr)
-              unvisited (filter #(not (contains? visited %)) neighbors)
-              curr-val (get-pos-vec state curr)
-              reachable (filter #(or (<= (get-pos-vec state %) curr-val)
-                                     (= 1 (abs (- (get-pos-vec state %) curr-val)))) unvisited)
-              new-frontier (apply conj (pop frontier) reachable)
-              new-visited (apply conj visited reachable)
-              new-history (reduce (fn [m k] (assoc m k curr)) history reachable)]
-          (recur new-frontier new-visited new-history))))))
+      (cond
+        (nil? curr) {}                                      ;; route was never reached, return empty history
+        (= curr (:end state)) history
+        :else (let [neighbors (get-neighbor-positions state curr)
+                    unvisited (filter #(not (contains? visited %)) neighbors)
+                    curr-val (get-pos-vec state curr)
+                    reachable (filter #(or (<= (get-pos-vec state %) curr-val)
+                                           (= 1 (abs (- (get-pos-vec state %) curr-val)))) unvisited)
+                    new-frontier (apply conj (pop frontier) reachable)
+                    new-visited (apply conj visited reachable)
+                    new-history (reduce (fn [m k] (assoc m k curr)) history reachable)]
+                (recur new-frontier new-visited new-history))))))
 
 (defn path-trace [start end history]
-  (loop [c end, path []]
-    (if (= c start)
-      path
-      (recur (get history c) (conj path c)))))
+  (if (empty? history)
+    []
+    (loop [c end, path []]
+      (if (= c start)
+        path
+        (recur (get history c) (conj path c))))))
 
 (def state (parse (slurp "input/day12.txt")))
-(def history (solve state))
-(def path (path-trace (:start state) (:end state) history))
-(count path)
+state
+
+(->> (get-zero-elevations state)
+     (map #(vector % (solve % state)))
+     (map #(path-trace (first %) (:end state) (second %)))
+     (filter #(not (empty? %)))
+     (map #(count %))
+     (apply min))
