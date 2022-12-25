@@ -26,18 +26,38 @@
     (and (number? left) (coll? right)) (valid-coll? (vector left) right)
     (and (coll? left) (number? right)) (valid-coll? left (vector right))))
 
-(defn solve [input]
+(defn solve-p1 [input]
   (map #(valid? (first %) (second %)) input))
 
-(defn parse [input]
+(defn solve-p2 [input]
+  (->> (sort #(case (valid? %1 %2)
+           :skip 0
+           :valid -1
+           :invalid 1)
+        input)
+      (map-indexed #(vector (+ 1 %1) %2))
+      (filter #(or (= (second %) [[2]]) (= (second %) [[6]])))
+       (reduce #(* (first %1) (first %2)))))
+
+(defn parse-p1 [input]
   (->> (str/split input #"\n\n")
        (map str/split-lines)
        (map #(map read-string %))))
 
-(def input (parse (slurp "input/day13.txt")))
+(defn parse-p2 [input]
+  (conj (->> (str/split input #"\n\n")
+       (map str/split-lines)
+       (flatten)
+       (map read-string))
+        [[2]] [[6]]))
 
-(->> (solve input)
-     (map-indexed #(vector (+ 1 %1) %2))
-     (filter #(= (second %) :valid))
-     (map first)
-     (reduce +))
+(def input (parse-p2 (slurp "input/day13.txt")))
+
+(solve-p2 input)
+
+; solve part 1
+;(->> (solve input)
+;     (map-indexed #(vector (+ 1 %1) %2))
+;     (filter #(= (second %) :valid))
+;     (map first)
+;     (reduce +))
