@@ -31,12 +31,12 @@
 
 (defn solve-p2 [input]
   (->> (sort #(case (valid? %1 %2)
-           :skip 0
-           :valid -1
-           :invalid 1)
-        input)
-      (map-indexed #(vector (+ 1 %1) %2))
-      (filter #(or (= (second %) [[2]]) (= (second %) [[6]])))
+                :skip 0
+                :valid -1
+                :invalid 1)
+             input)
+       (map-indexed #(vector (+ 1 %1) %2))
+       (filter #(or (= (second %) [[2]]) (= (second %) [[6]])))
        (reduce #(* (first %1) (first %2)))))
 
 (defn parse-p1 [input]
@@ -46,9 +46,9 @@
 
 (defn parse-p2 [input]
   (conj (->> (str/split input #"\n\n")
-       (map str/split-lines)
-       (flatten)
-       (map read-string))
+             (map str/split-lines)
+             (flatten)
+             (map read-string))
         [[2]] [[6]]))
 
 (def input (parse-p2 (slurp "input/day13.txt")))
